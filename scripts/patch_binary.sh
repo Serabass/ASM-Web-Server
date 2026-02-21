@@ -27,11 +27,15 @@ else
   cl_value="(unchanged)"
 fi
 
-# 20-char placeholders after <!--BINSIZE--> and <!--IMGSIZE-->
+# 20-char placeholders: BINSIZE, IMGUNCOMPRESSED (image uncompressed = binary size for scratch), IMGSIZE (compressed from docker)
 binsize_text=$(printf '%-20s' "${BINARY_SIZE} bytes")
+# Uncompressed image size = binary size for scratch
+img_uncompressed=$(echo "$BINARY_SIZE" | awk '{ if($1>=1048576) printf "%.2f MiB", $1/1048576; else if($1>=1024) printf "%.2f KiB", $1/1024; else printf "%d bytes", $1 }')
+imguncompressed_text=$(printf '%-20s' "$img_uncompressed")
 imgsize_text=$(printf '%-20s' "$IMAGE_SIZE")
 dots20='....................'
 sed -i "s|<!--BINSIZE-->$dots20|<!--BINSIZE-->$binsize_text|" "$SERVER"
+sed -i "s|<!--IMGUNCOMPRESSED-->$dots20|<!--IMGUNCOMPRESSED-->$imguncompressed_text|" "$SERVER"
 sed -i "s|<!--IMGSIZE-->$dots20|<!--IMGSIZE-->$imgsize_text|" "$SERVER"
 
 # 80-char URL: replace the default URL+spaces block with new URL padded to 80
@@ -41,4 +45,4 @@ new_github_80=$(printf '%-80s' "$GITHUB_URL")
 new_escaped=$(echo "$new_github_80" | sed 's/[\&]/\\\&/g')
 sed -i "s#$old_github_80#$new_escaped#" "$SERVER" 2>/dev/null || true
 
-echo "Patched: Content-Length=$cl_value BINARY_SIZE=$BINARY_SIZE IMAGE_SIZE=$IMAGE_SIZE"
+echo "Patched: Content-Length=$cl_value BINARY_SIZE=$BINARY_SIZE IMG_UNCOMPRESSED=$img_uncompressed IMAGE_SIZE=$IMAGE_SIZE"
