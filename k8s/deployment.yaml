@@ -19,15 +19,22 @@ spec:
           image: asm-server:latest
           ports:
             - containerPort: 8080
+          # Single process, blocking accept loop: only one request at a time. Probes and
+          # client traffic share the same queue; frequent checks add latency. So we use
+          # moderate period (10s), generous timeout/failureThreshold.
           livenessProbe:
             httpGet:
               path: /health
               port: 8080
             initialDelaySeconds: 2
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
               port: 8080
             initialDelaySeconds: 1
-            periodSeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3

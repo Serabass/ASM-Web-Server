@@ -17,14 +17,14 @@ RUN tr -d '\r' < /build/scripts/embed-static.sh > /tmp/embed-static.sh && chmod 
 # Build for amd64 (x86_64). Route /health: check byte 12 is space.
 FROM builder AS builder-amd64
 RUN cd /build/src && nasm -f elf64 -o /build/main.o main.asm && \
-    ld -nostdlib -e _start -o /build/server /build/main.o
+    ld -static -nostdlib -e _start -o /build/server /build/main.o
 
 # Build for arm64
 FROM builder AS builder-arm64
 RUN apt-get update && apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu \
     && rm -rf /var/lib/apt/lists/*
 RUN cd /build/src && aarch64-linux-gnu-as -o /build/main.o main.S && \
-    aarch64-linux-gnu-ld -nostdlib -e _start -o /build/server /build/main.o
+    aarch64-linux-gnu-ld -static -nostdlib -e _start -o /build/server /build/main.o
 
 # Select builder output by arch
 FROM builder-${TARGETARCH} AS artifact

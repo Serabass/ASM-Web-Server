@@ -10,6 +10,11 @@ variable "TAG" {
   default = "latest"
 }
 
+# Pass from host: docker buildx bake --set GITHUB_URL=$(git remote get-url origin)
+variable "GITHUB_URL" {
+  default = "https://github.com/Serabass/ASM-Web-Server"
+}
+
 # All platforms that buildx / OCI typically support
 variable "PLATFORMS_ALL" {
   default = [
@@ -41,6 +46,7 @@ target "asm-server" {
   platforms  = PLATFORMS_SUPPORTED
   tags       = ["${IMAGE}:${TAG}"]
   output     = ["type=image"]
+  args       = { GITHUB_URL = GITHUB_URL }
 }
 
 # Build for all listed platforms (will fail for arm/v7, 386, ppc64le, s390x until you add builder-* stages)
@@ -50,6 +56,7 @@ target "asm-server-all" {
   platforms  = PLATFORMS_ALL
   tags       = ["${IMAGE}:${TAG}"]
   output     = ["type=image"]
+  args       = { GITHUB_URL = GITHUB_URL }
 }
 
 # Push to registry (set REGISTRY or use full image name)
@@ -64,4 +71,5 @@ target "asm-server-push" {
   platforms  = PLATFORMS_SUPPORTED
   tags       = ["${IMAGE}:${TAG}"]
   output     = ["type=registry"]
+  args       = { GITHUB_URL = GITHUB_URL }
 }

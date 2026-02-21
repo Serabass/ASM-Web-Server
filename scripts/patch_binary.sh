@@ -13,18 +13,19 @@ BINARY_SIZE="${BINARY_SIZE:-$(stat -c%s "$SERVER" 2>/dev/null || echo 0)}"
 IMAGE_SIZE="${IMAGE_SIZE:-N/A}"
 GITHUB_URL="${GITHUB_URL:-https://github.com/your-org/asm-server}"
 
-# Compute body length: from <!DOCTYPE to </html> inclusive
+# Content-Length: only replace placeholder 0000; embed script already sets correct length
 start=$(grep -bo '<!DOCTYPE' "$SERVER" 2>/dev/null | head -1 | cut -d: -f1)
 end=$(grep -bo '</html>' "$SERVER" 2>/dev/null | head -1 | cut -d: -f1)
 if [ -n "$start" ] && [ -n "$end" ]; then
   body_len=$((end + 7 - start))
+  cl_value=$(printf '%04d' "$body_len")
+  sed -i "s|Content-Length: 0000|Content-Length: $cl_value|" "$SERVER"
+  echo "Patched: Content-Length=$cl_value"
 else
-  body_len=500
+  # Do not overwrite embed's Content-Length with fallback 500
+  echo "Patched: Content-Length left as-is (no 0000 placeholder or grep failed)"
+  cl_value="(unchanged)"
 fi
-cl_value=$(printf '%04d' "$body_len")
-
-# Content-Length: 0000 -> actual 4 digits (use | delimiter to avoid / in values)
-sed -i "s|Content-Length: 0000|Content-Length: $cl_value|" "$SERVER"
 
 # 20-char placeholders after <!--BINSIZE--> and <!--IMGSIZE-->
 binsize_text=$(printf '%-20s' "${BINARY_SIZE} bytes")

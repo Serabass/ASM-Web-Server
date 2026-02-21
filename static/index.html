@@ -4,14 +4,95 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ASM Server</title>
+  <style>
+    :root { --bg:#0f0f12; --card:#1a1a20; --text:#e4e4e7; --muted:#71717a; --accent:#a78bfa; --accent-hover:#c4b5fd; --border:#27272a; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; min-height: 100vh; padding: 2rem; line-height: 1.6; }
+    .wrap { max-width: 42rem; margin: 0 auto; }
+    h1 { font-size: 1.75rem; font-weight: 700; margin: 0 0 0.5rem; letter-spacing: -0.02em; }
+    .sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+    .card h2 { font-size: 1rem; font-weight: 600; margin: 0 0 0.75rem; color: var(--muted); }
+    ul { margin: 0; padding: 0; list-style: none; }
+    .card li { padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .card li:last-child { border-bottom: 0; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; color: var(--accent-hover); }
+    .add-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .add-row input[type="number"] { width: 4.5rem; padding: 0.5rem 0.6rem; font-size: 1rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+    .add-row input:focus { outline: none; border-color: var(--accent); }
+    .add-row span { color: var(--muted); font-weight: 500; }
+    .add-row button { padding: 0.5rem 1rem; font-size: 1rem; font-weight: 600; background: var(--accent); color: var(--bg); border: 0; border-radius: 8px; cursor: pointer; }
+    .add-row button:hover { background: var(--accent-hover); }
+    output { font-weight: 600; min-width: 2rem; display: inline-block; }
+    .sum-time { color: var(--muted); font-size: 0.85rem; margin-left: 0.25rem; }
+    code, var { font-family: ui-monospace, monospace; font-size: 0.9em; background: var(--border); padding: 0.1em 0.35em; border-radius: 4px; }
+    .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem; }
+  </style>
 </head>
 <body>
-  <h1>ASM Web Service</h1>
-  <p>Web server in assembly (x86_64/ARM64), Docker + Kubernetes.</p>
-  <ul>
-    <li>GitHub: <a href="<!--GITHUB-->https://github.com/your-org/asm-server                                         ">repo</a></li>
-    <li>Binary size: <!--BINSIZE-->....................</li>
-    <li>Image size: <!--IMGSIZE-->....................</li>
-  </ul>
+  <div class="wrap">
+    <h1>ASM Web Service</h1>
+    <p class="sub">Minimal HTTP server written in assembly: no libc, only Linux syscalls. x86_64 (NASM) and ARM64 (GAS), one binary per arch. Runs in a scratch Docker image and in Kubernetes.</p>
+    <div class="card">
+      <h2>About</h2>
+      <p style="margin:0 0 0.75rem; font-size:0.9rem;">Single process, blocking accept loop. Static HTML and sizes are patched into the binary at build time. Built with <code>nasm</code> / <code>aarch64-linux-gnu-as</code> and <code>ld -static -nostdlib</code>; final image is <code>scratch</code> (no shell, no libs).</p>
+      <ul>
+        <li>GitHub: <a href="<!--GITHUB-->https://github.com/your-org/asm-server                                         ">repo</a></li>
+        <li>Binary size: <!--BINSIZE-->....................</li>
+        <li>Image size: <!--IMGSIZE-->....................</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>API</h2>
+      <ul>
+        <li><strong>GET /</strong> — this page (HTML)</li>
+        <li><strong>GET /health</strong> — <code>200 OK</code>, body <code>OK</code> (for K8s probes)</li>
+        <li><strong>GET /add/<var>X</var>/<var>Y</var></strong> — sum of two integers, plain text</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Add two numbers</h2>
+      <p class="add-row">
+        <input type="number" id="a" value="2" min="-999" max="999" aria-label="First number">
+        <span>+</span>
+        <input type="number" id="b" value="3" min="-999" max="999" aria-label="Second number">
+        <button type="button" id="addBtn">=</button>
+        <output id="sum" aria-live="polite">—</output>
+        <span id="sumTime" class="sum-time" aria-hidden="true"></span>
+      </p>
+    </div>
+    <footer class="footer">Page loaded in <span id="loadTime">—</span> ms</footer>
+  </div>
+  <script>
+    document.getElementById('addBtn').addEventListener('click', function () {
+      var a = document.getElementById('a').value;
+      var b = document.getElementById('b').value;
+      var out = document.getElementById('sum');
+      var timeEl = document.getElementById('sumTime');
+      out.textContent = '…';
+      timeEl.textContent = '';
+      var t0 = performance.now();
+      fetch('/add/' + a + '/' + b)
+        .then(function (r) { return r.text(); })
+        .then(function (text) {
+          var ms = Math.round(performance.now() - t0);
+          out.textContent = text;
+          timeEl.textContent = ms + ' ms';
+        })
+        .catch(function () {
+          out.textContent = 'error';
+          timeEl.textContent = '';
+        });
+    });
+    window.addEventListener('load', function () {
+      var nav = performance.getEntriesByType('navigation')[0];
+      var loadEl = document.getElementById('loadTime');
+      if (nav && loadEl) {
+        var ms = Math.round(nav.responseEnd - nav.fetchStart);
+        loadEl.textContent = ms;
+      }
+    });
+  </script>
 </body>
 </html>
