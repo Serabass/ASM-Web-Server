@@ -2,6 +2,8 @@
 
 Минимальный HTTP-сервер на ассемблере: без libc, только Linux syscalls. Один поток, блокирующий цикл accept. Собирается в статический бинарник, запускается в Docker-образе `scratch` и в Kubernetes.
 
+**Размер образа**: <!--IMGSIZE--> 6.05 KiB
+
 ## Что это
 
 - **x86_64:** NASM, `main.asm` → `ld -static -nostdlib`.

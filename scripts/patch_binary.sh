@@ -11,7 +11,7 @@ fi
 # BINARY_SIZE from env or from file size
 BINARY_SIZE="${BINARY_SIZE:-$(stat -c%s "$SERVER" 2>/dev/null || echo 0)}"
 IMAGE_SIZE="${IMAGE_SIZE:-N/A}"
-GITHUB_URL="${GITHUB_URL:-https://github.com/your-org/asm-server}"
+GITHUB_URL="${GITHUB_URL:-https://github.com/Serabass/ASM-Web-Server}"
 
 # Content-Length: only replace placeholder 0000; embed script already sets correct length
 start=$(grep -bo '<!DOCTYPE' "$SERVER" 2>/dev/null | head -1 | cut -d: -f1)
@@ -35,7 +35,7 @@ sed -i "s|<!--BINSIZE-->$dots20|<!--BINSIZE-->$binsize_text|" "$SERVER"
 sed -i "s|<!--IMGSIZE-->$dots20|<!--IMGSIZE-->$imgsize_text|" "$SERVER"
 
 # 80-char URL: replace the default URL+spaces block with new URL padded to 80
-old_github_80=$(printf '%-80s' 'https://github.com/your-org/asm-server')
+old_github_80=$(printf '%-80s' 'https://github.com/Serabass/ASM-Web-Server')
 new_github_80=$(printf '%-80s' "$GITHUB_URL")
 # Use # delimiter (not in URL); escape & in replacement as \&
 new_escaped=$(echo "$new_github_80" | sed 's/[\&]/\\\&/g')

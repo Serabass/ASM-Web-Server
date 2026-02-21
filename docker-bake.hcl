@@ -10,9 +10,14 @@ variable "TAG" {
   default = "latest"
 }
 
-# Pass from host: docker buildx bake --set GITHUB_URL=$(git remote get-url origin)
+# Pass from host: docker buildx bake --set asm-server.args.GITHUB_URL=...
 variable "GITHUB_URL" {
   default = "https://github.com/Serabass/ASM-Web-Server"
+}
+
+# Image size (e.g. "1.23 MiB") patched into the binary and README; set by build.ps1 after first build.
+variable "IMAGE_SIZE" {
+  default = "N/A"
 }
 
 # All platforms that buildx / OCI typically support
@@ -46,7 +51,7 @@ target "asm-server" {
   platforms  = PLATFORMS_SUPPORTED
   tags       = ["${IMAGE}:${TAG}"]
   output     = ["type=image"]
-  args       = { GITHUB_URL = GITHUB_URL }
+  args       = { GITHUB_URL = GITHUB_URL, IMAGE_SIZE = IMAGE_SIZE }
 }
 
 # Build for all listed platforms (will fail for arm/v7, 386, ppc64le, s390x until you add builder-* stages)
@@ -56,7 +61,7 @@ target "asm-server-all" {
   platforms  = PLATFORMS_ALL
   tags       = ["${IMAGE}:${TAG}"]
   output     = ["type=image"]
-  args       = { GITHUB_URL = GITHUB_URL }
+  args       = { GITHUB_URL = GITHUB_URL, IMAGE_SIZE = IMAGE_SIZE }
 }
 
 # Push to registry (set REGISTRY or use full image name)
@@ -71,5 +76,5 @@ target "asm-server-push" {
   platforms  = PLATFORMS_SUPPORTED
   tags       = ["${IMAGE}:${TAG}"]
   output     = ["type=registry"]
-  args       = { GITHUB_URL = GITHUB_URL }
+  args       = { GITHUB_URL = GITHUB_URL, IMAGE_SIZE = IMAGE_SIZE }
 }
