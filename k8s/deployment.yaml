@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asm-server
+  labels:
+    app: asm-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asm-server
+  template:
+    metadata:
+      labels:
+        app: asm-server
+    spec:
+      containers:
+        - name: asm-server
+          image: asm-server:latest
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 1
+            periodSeconds: 5

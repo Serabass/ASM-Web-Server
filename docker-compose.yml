@@ -1,0 +1,11 @@
+services:
+  asm-server:
+    image: asm-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
