@@ -9,3 +9,15 @@ services:
     ports:
       - "9911:8080"
     restart: unless-stopped
+
+  sonar-scanner:
+    image: sonarsource/sonar-scanner-cli:latest
+    command: sonar-scanner -Dsonar.host.url="http://sonar.home.local"
+    working_dir: /usr/src
+    environment:
+      - SONAR_TOKEN=${SONAR_TOKEN}
+    volumes:
+      - .:/usr/src
+      # Hide k3s_binary_cache so scanner does not walk into it (AccessDenied on Windows mount)
+      # optional: if sonar.home.local is only on host network
+      # network_mode: host

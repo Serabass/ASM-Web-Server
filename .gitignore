@@ -1,0 +1,34 @@
+# --- Secrets (NEVER commit) ---
+.env
+.env.*
+!.env.example
+
+# --- Build / binaries ---
+*.o
+*.obj
+/server
+/build/
+k3s_binary_cache/
+
+# --- SonarQube ---
+.scannerwork/
+
+# --- IDE / editors ---
+.idea/
+.vs/
+*.swp
+*.swo
+*~
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Cursor (optional: remove .cursor/ if you want to track commands) ---
+.cursor/plans/
+.cursor/cache/
+
+# --- Misc ---
+*.log
+node_modules/
