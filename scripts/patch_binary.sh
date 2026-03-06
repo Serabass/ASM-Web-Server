@@ -28,7 +28,10 @@ else
 fi
 
 # 20-char placeholders: BINSIZE, IMGUNCOMPRESSED (image uncompressed = binary size for scratch), IMGSIZE (compressed from docker)
-binsize_text=$(printf '%-20s' "${BINARY_SIZE} bytes")
+# BINSIZE: KiB first, then bytes in parentheses with space as thousands separator (e.g. "15.21 KiB (15 560 bytes)")
+bytes_formatted=$(echo "$BINARY_SIZE" | awk '{ n=$1; s=""; while(n>=1000) { r=n%1000; n=int(n/1000); s=sprintf(" %03d%s", r, s) }; s=sprintf("%d%s", n, s); print s }')
+kib=$(echo "$BINARY_SIZE" | awk '{ printf "%.2f", $1/1024 }')
+binsize_text="${kib} KiB (${bytes_formatted} bytes)"
 # Uncompressed image size = binary size for scratch
 img_uncompressed=$(echo "$BINARY_SIZE" | awk '{ if($1>=1048576) printf "%.2f MiB", $1/1048576; else if($1>=1024) printf "%.2f KiB", $1/1024; else printf "%d bytes", $1 }')
 imguncompressed_text=$(printf '%-20s' "$img_uncompressed")

@@ -3,7 +3,7 @@
 # Supported by this Dockerfile: amd64, arm64. Others need builder-* stage in Dockerfile.
 
 variable "IMAGE" {
-  default = "reg.serabass.kz/vibecoding/asm-server"
+  default = "reg.home.local/vibecoding/asm-server"
 }
 
 variable "TAG" {
